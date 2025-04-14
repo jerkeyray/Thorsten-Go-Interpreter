@@ -1,10 +1,10 @@
 package parser
 
 import (
+	"fmt"
 	"shina/ast"
 	"shina/lexer"
 	"shina/token"
-	"fmt"
 )
 
 type Parser struct {
@@ -23,7 +23,7 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
-func (p *Parser) Errors() [] string {
+func (p *Parser) Errors() []string {
 	return p.errors
 }
 
@@ -41,6 +41,8 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.currToken.Type {
 	case token.LET:
 		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 	}
@@ -72,6 +74,18 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
+
+	for !p.currTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.currToken}
+
+	p.nextToken()
 
 	for !p.currTokenIs(token.SEMICOLON) {
 		p.nextToken()
